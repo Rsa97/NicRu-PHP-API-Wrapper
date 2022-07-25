@@ -1,0 +1,9 @@
+/.idea
+/.vscode
+/coverage
+/vendor
+.vale.ini
+composer.lock
+*.cache
+/secure
+1

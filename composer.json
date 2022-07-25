@@ -1,0 +1,18 @@
+{
+    "name": "rsa97/nic-ru-client",
+    "description": "Nic.Ru Client Library",
+    "type": "library",
+    "license": "GPLv3",
+    "autoload": {
+        "psr-4": {
+            "Rsa97\\NicRu\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Rakhmatulin Sergey",
+            "email": "r.serge.a@gmail.com"
+        }
+    ],
+    "require": {}
+}
