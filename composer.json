@@ -1,6 +1,6 @@
 {
-    "name": "rsa97/nic-ru-client",
-    "description": "Nic.Ru Client Library",
+    "name": "rsa97/nic-ru-api-wrapper",
+    "description": "Nic.Ru API Wrapper Library",
     "type": "library",
     "license": "GPL-3.0-only",
     "autoload": {
