@@ -2,7 +2,7 @@
 
 namespace Rsa97\NicRu;
 
-use SimpleXMLElement;
+use \Rsa97\NicRu\Exceptions\ServiceNotFoundException;
 
 class Client
 {
@@ -10,14 +10,6 @@ class Client
 
     public function __construct(string $nicLogin, string $nicPassword, string $apiLogin, string $apiPassword, array $scopes = [])
     {
-        assert(
-            array_reduce(
-                $scopes,
-                fn($acc, $cur) => $acc && $cur instanceof Scope,
-                true
-            ),
-            new \Exception('Incorrect scope, must be instance of Scope')
-        );
         if (count($scopes) === 0) {
             $scopes = [
                 new Scope()
@@ -57,7 +49,7 @@ class Client
             fn($s) => $s->getName() === $serviceName
         ));
         if (count($service) === 0) {
-            throw new \Exception('Invalid zone name');
+            throw new ServiceNotFoundException('Service not found');
         }
         return $service[0];
     }
@@ -150,9 +142,13 @@ class Client
         $this->getService($serviceName)->setZoneTTL($zoneName, $ttl);
     }
 
-    public function getZoneResourceRecords(string $serviceName, string $zoneName): array
-    {
-        return $this->getService($serviceName)->getZoneResourceRecords($zoneName);
+    public function getZoneResourceRecords(
+        string $serviceName,
+        string $zoneName,
+        ?ResourceRecordType $type = null,
+        ?string $name = null
+    ): array {
+        return $this->getService($serviceName)->getZoneResourceRecords($zoneName, $type, $name);
     }
 
     public function addZoneResourceRecords(string $serviceName, string $zoneName, array $resourceRecords): array
@@ -160,9 +156,18 @@ class Client
         return $this->getService($serviceName)->addZoneResourceRecords($zoneName, $resourceRecords);
     }
 
-    public function deleteResourceRecords(string $serviceName, string $zoneName, int $resourceRecordId): void
+    public function deleteZoneResourceRecord(string $serviceName, string $zoneName, int $resourceRecordId): void
     {
         $this->getService($serviceName)->deleteZoneResourceRecord($zoneName, $resourceRecordId);
+    }
+
+    public function deleteZoneResourceRecords(
+        string $serviceName,
+        string $zoneName,
+        ?ResourceRecordType $type,
+        string $name
+    ): void {
+        $this->getService($serviceName)->deleteZoneResourceRecords($zoneName, $type, $name);
     }
 
     public function getZoneMasters(string $serviceName, string $zoneName): array

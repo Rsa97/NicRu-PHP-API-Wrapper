@@ -5,7 +5,6 @@ namespace Rsa97\NicRu;
 class RR_MX extends ResourceRecord
 {
     use XMLParse;
-
     #[XMLParse('mx', type: 'sub')]
     private string $mx;
     #[XMLParse('preference', required: true)]

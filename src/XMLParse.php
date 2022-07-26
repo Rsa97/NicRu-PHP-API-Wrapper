@@ -101,7 +101,6 @@ trait XMLParse
     public static function from(\SimpleXMLElement $source): self
     {
         $props = static::parse($source);
-        var_dump($props);
         $self = new static(...$props['required']);
         foreach ($props['optional'] as $name => $value) {
             $self->{$name} = $value;

@@ -2,6 +2,8 @@
 
 namespace Rsa97\NicRu;
 
+use Rsa97\NicRu\Exceptions\ZoneNotFoundException;
+
 class Service
 {
     use XMLParse {
@@ -123,7 +125,7 @@ class Service
             fn($z) => $z->getName() === $name
         ));
         if (count($zone) === 0) {
-            throw new \Exception('Invalid zone name');
+            throw new ZoneNotFoundException('Zone not found');
         }
         return $zone[0];
     }
@@ -195,9 +197,9 @@ class Service
         $this->getZone($zoneName)->setTTL($ttl);
     }
 
-    public function getZoneResourceRecords(string $zoneName): array
+    public function getZoneResourceRecords(string $zoneName, ?ResourceRecordType $type = null, ?string $name = null): array
     {
-        return $this->getZone($zoneName)->getResourceRecords();
+        return $this->getZone($zoneName)->getResourceRecords($type, $name);
     }
 
     public function addZoneResourceRecords(string $zoneName, array $resourceRecords): array
@@ -208,6 +210,11 @@ class Service
     public function deleteZoneResourceRecord(string $zoneName, int $resourceRecordId): void
     {
         $this->getZone($zoneName)->deleteResourceRecord($resourceRecordId);
+    }
+
+    public function deleteZoneResourceRecords(string $zoneName, ?ResourceRecordType $type, string $name): void
+    {
+        $this->getZone($zoneName)->deleteResourceRecords($type, $name);
     }
 
     public function getZoneMasters(string $zoneName): array

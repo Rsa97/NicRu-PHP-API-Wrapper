@@ -25,7 +25,7 @@ class RR_SRV extends ResourceRecord
         $this->priority = $priority;
         $this->weight = $weight;
         $this->port = $port;
-        $this->target = idn_to_ascii($target);
+        $this->target = $target === '.' ? '.' : idn_to_ascii($target);
     }
 
     public function getPriority(): int
@@ -44,7 +44,7 @@ class RR_SRV extends ResourceRecord
     }
     public function getTarget(): string
     {
-        return idn_to_utf8($this->target);
+        return $this->target === '.' ? '.' : idn_to_utf8($this->target);
     }
     
     public function toXML(\SimpleXMLElement $xml): void

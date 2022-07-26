@@ -2,6 +2,9 @@
 
 namespace Rsa97\NicRu;
 
+use \Rsa97\NicRu\Exceptions\CurlErrorException;
+use \Rsa97\NicRu\Exceptions\APIErrorException;
+
 class Protocol
 {
     private const URL = 'https://api.nic.ru';
@@ -16,7 +19,6 @@ class Protocol
                 CURLOPT_CUSTOMREQUEST => $method->name,
                 CURLOPT_RETURNTRANSFER => true,
                 CURLOPT_FOLLOWLOCATION => true,
-                // CURLOPT_HEADER => true
             ]
         );
         switch ($method) {
@@ -56,7 +58,7 @@ class Protocol
         }
         $result = curl_exec($curl);
         if ($result === false) {
-            throw new \Exception(curl_error($curl), curl_errno($curl));
+            throw new CurlErrorException(curl_error($curl), curl_errno($curl));
         }
         curl_close($curl);
         return $result;
@@ -67,7 +69,7 @@ class Protocol
         $result = $this->request($method, $url, $data, $headers);
         $json = json_decode($result);
         if ($json === null) {
-            throw new \Exception('NIC protocol error');
+            throw new APIErrorException('Empty answer from API');
         }
         return $json;
     }
@@ -77,7 +79,7 @@ class Protocol
         $result = $this->request($method, $url, $data, $headers);
         $xml = simplexml_load_string($result, options: LIBXML_NOERROR | LIBXML_NOWARNING);
         if ($xml === false) {
-            throw new \Exception('NIC protocol error');
+            throw new APIErrorException('Invalid XML answer from API');
         }
         if ("{$xml->status}" === 'fail') {
             $errs = [];
@@ -85,7 +87,7 @@ class Protocol
                 $errs[] = "{$error['code']}: {$error}";
             }
             $err = implode(', ', $errs);
-            throw new \Exception("NIC error: {$err}");
+            throw new APIErrorException($err);
         }
         return $xml;
     }
@@ -107,10 +109,10 @@ class Protocol
             ]
         );
         if (isset($result->error)) {
-            throw new \Exception("NIC error: {$result->error}");
+            throw new APIErrorException($result->error);
         }
         if (!isset($result->access_token)) {
-            throw new \Exception('NIC protocol error');
+            throw new APIErrorException('No token in authentication answer from API');
         }
         $this->token = $result->access_token;
     }
@@ -182,7 +184,7 @@ class Protocol
                 $errs[] = "{$error['code']}: {$error}";
             }
             $err = implode(', ', $errs);
-            throw new \Exception("NIC error: {$err}");
+            throw new APIErrorException($err);
         }
         return $xml;
     }

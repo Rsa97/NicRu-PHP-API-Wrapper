@@ -23,8 +23,17 @@ class RR_SOA extends ResourceRecord
     #[XMLParse('minimum', required: true)]
     private int $minimum;
 
-    public function __construct(string $name, string $nsName, string $mailName, int $serial, int $refresh, int $retry, int $expire, int $minimum, int $ttl = null)
-    {
+    public function __construct(
+        string $name = '@',
+        string $nsName,
+        string $mailName,
+        int $serial,
+        int $refresh,
+        int $retry,
+        int $expire,
+        int $minimum,
+        int $ttl = null
+    ) {
         $this->type = ResourceRecordType::SOA;
         $this->name = idn_to_ascii($name);
         $this->ttl = $ttl;

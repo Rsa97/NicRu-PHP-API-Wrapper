@@ -12,9 +12,14 @@ class RR_PTR extends ResourceRecord
     public function __construct(string $name, string $host, int $ttl = null)
     {
         $this->type = ResourceRecordType::PTR;
-        $this->name = idn_to_ascii($name);
+        $this->name = $name;
         $this->ttl = $ttl;
         $this->host = idn_to_ascii($host);
+    }
+
+    public function getName(): string
+    {
+        return $this->name;
     }
 
     public function getPtr(): string

@@ -14,10 +14,8 @@ class Zone
     private int $id;
     #[XMLParse('@enable')]
     private bool $enable;
-    #[XMLParse('@name')]
+    #[XMLParse('@name', type: 'method', method: 'parseName')]
     private string $name;
-    #[XMLParse('@idn-name')]
-    private string $idnName;
     #[XMLParse('@service')]
     private string $serviceName;
     #[XMLParse('@has-changes')]
@@ -33,6 +31,11 @@ class Zone
         return $val === 'true'
             ? ServiceType::DNS_MASTER
             : ServiceType::SECONDARY;
+    }
+
+    private static function parseName(string $name): string
+    {
+        return idn_to_ascii($name);
     }
 
     private function updateInfo(): void
@@ -68,14 +71,9 @@ class Zone
 
     public function getName(): string
     {
-        return $this->name;
+        return idn_to_utf8($this->name);
     }
 
-    public function getIdnName(): string
-    {
-        return $this->idnName;
-    }
-    
     public function getServiceName(): string
     {
         return $this->service;
@@ -93,9 +91,8 @@ class Zone
 
     public function move(string $newServiceName): void
     {
-        $this->client->getProtocol()->moveZone($this->serviceName, idn_to_ascii($this->name), $newServiceName);
-        $this->client->getService($this->serviceName);
-        $this->client->getService($newServiceName);
+        $this->client->getProtocol()->moveZone($this->serviceName, $this->name, $newServiceName);
+        $this->client->getServices();
         $this->serviceName = $newServiceName;
         $name = "{$this->serviceName}:{$this->zoneName}";
         unset(static::$zones[$name]);
@@ -104,7 +101,7 @@ class Zone
 
     public function delete(): void
     {
-        $this->client->getProtocol()->deleteZone($this->serviceName, idn_to_ascii($this->name));
+        $this->client->getProtocol()->deleteZone($this->serviceName, $this->name);
         $this->client->getService($this->serviceName);
         $name = "{$this->serviceName}:{$this->zoneName}";
         unset(static::$zones[$name]);
@@ -122,21 +119,6 @@ class Zone
 
     public function setXferAllowList(array $addressList): void
     {
-        if (count($addressList) === 0) {
-            throw new \Exception('Empty address list');
-        }
-        if ($addressList[0] === 'any' && count($addressList) > 1) {
-            throw new \Exception('\'any\' must be a single element in list');
-        }
-        if (
-            !array_reduce(
-                $addressList,
-                fn($acc, $cur) => $acc && ip2long($cur) !== false,
-                true
-            )
-        ) {
-            throw new \Exception('Invalid IP in address list');
-        }
         $xml = new \SimpleXMLElement('<?xml version="1.0" encoding="UTF-8" ?><request></request>');
         foreach ($addressList as $address) {
             $xml->addChild('address', $address);
@@ -198,12 +180,20 @@ class Zone
         $this->updateInfo();
     }
 
-    public function getResourceRecords(): array
+    public function getResourceRecords(?ResourceRecordType $type = null, ?string $name = null): array
     {
         $result = $this->client->getProtocol()->getZoneResourceRecords($this->serviceName, $this->name);
         $records = [];
+        if ($name !== null) {
+            $idnName = idn_to_ascii($name);
+        }
         foreach ($result->data->zone->rr as $rr) {
-            $records[] = ResourceRecord::from($rr);
+            if (
+                ($type === null || $type->value === "{$rr->type}") &&
+                ($name === null || $idnName === idn_to_ascii("{$rr->name}")) 
+            ) {
+                $records[] = ResourceRecord::from($rr);
+            }
         }
         return $records;
     }
@@ -227,6 +217,13 @@ class Zone
     public function deleteResourceRecord(int $resourceRecordId): void
     {
         $this->client->getProtocol()->deleteZoneResourceRecord($this->serviceName, $this->name, $resourceRecordId);
+    }
+
+    public function deleteResourceRecords(?ResourceRecordType $type, string $name): void
+    {
+        foreach ($this->getResourceRecords($type, $name) as $rr) {
+            $this->deleteResourceRecord($rr->getId());
+        }
     }
 
     public function getMasters(): array

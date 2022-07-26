@@ -5,7 +5,6 @@ namespace Rsa97\NicRu;
 class RR_HINFO extends ResourceRecord
 {
     use XMLParse;
-
     #[XMLParse('hinfo', type: 'sub')]
     private string $hinfo;
     #[XMLParse('hardware', required: true)]
