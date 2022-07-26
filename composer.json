@@ -1,9 +1,8 @@
 {
     "name": "rsa97/nic-ru-client",
-    "version": "1.0.0",
     "description": "Nic.Ru Client Library",
     "type": "library",
-    "license": "GPLv3",
+    "license": "GPL-3.0-only",
     "autoload": {
         "psr-4": {
             "Rsa97\\NicRu\\": "src/"

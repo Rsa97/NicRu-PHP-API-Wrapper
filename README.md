@@ -22,4 +22,4 @@ A brief description goes here
 
 ## License
 
-The General Public License version 3 (GPLv3). Please see [License File](LICENSE) for more information.
+The General Public License version 3 (GPL-3.0-only). Please see [License File](LICENSE) for more information.
